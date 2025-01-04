@@ -19,6 +19,7 @@ package com.flipkart.poseidon.serviceclients;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.poseidon.handlers.http.HttpResponseCustomDecoder;
 import com.flipkart.poseidon.handlers.http.HttpResponseDecoder;
 import com.flipkart.poseidon.handlers.http.utils.StringUtils;
 import org.apache.commons.io.IOUtils;
@@ -41,6 +42,7 @@ public class ServiceResponseDecoder<T> implements HttpResponseDecoder<ServiceRes
     private final Map<String, ServiceResponseInfo> serviceResponseInfoMap = new HashMap<>();
     private final Map<String, Queue<String>> collectedHeaders;
     private final Map<String, List<String>> localCollectedHeaders = new HashMap<>();
+    private final HttpResponseCustomDecoder customDecoder;
 
     @Deprecated
     public ServiceResponseDecoder(ObjectMapper objectMapper, JavaType javaType, JavaType errorType, Logger logger, Map<String, Class<? extends ServiceClientException>> exceptions) {
@@ -49,7 +51,7 @@ public class ServiceResponseDecoder<T> implements HttpResponseDecoder<ServiceRes
 
     @Deprecated
     public ServiceResponseDecoder(ObjectMapper objectMapper, JavaType javaType, JavaType errorType, Logger logger, Map<String, Class<? extends ServiceClientException>> exceptions, Map<String, Queue<String>> collectedHeaders) {
-        this(objectMapper, logger, new HashMap<>(), collectedHeaders);
+        this(objectMapper, logger, new HashMap<>(), collectedHeaders, null);
         this.serviceResponseInfoMap.put("200", new ServiceResponseInfo(javaType, null));
         exceptions.forEach((s, c) -> {
             this.serviceResponseInfoMap.put(s, new ServiceResponseInfo(errorType, c));
@@ -57,10 +59,15 @@ public class ServiceResponseDecoder<T> implements HttpResponseDecoder<ServiceRes
     }
 
     public ServiceResponseDecoder(ObjectMapper objectMapper, Logger logger, Map<String, ServiceResponseInfo> serviceResponseInfoMap, Map<String, Queue<String>> collectedHeaders) {
+        this(objectMapper, logger, serviceResponseInfoMap, collectedHeaders, null);
+    }
+
+    public ServiceResponseDecoder(ObjectMapper objectMapper, Logger logger, Map<String, ServiceResponseInfo> serviceResponseInfoMap, Map<String, Queue<String>> collectedHeaders, HttpResponseCustomDecoder customDecoder) {
         this.objectMapper = objectMapper;
         this.logger = logger;
         this.serviceResponseInfoMap.putAll(serviceResponseInfoMap);
         this.collectedHeaders = collectedHeaders;
+        this.customDecoder = customDecoder;
     }
 
     private Map<String, String> getHeaders(HttpResponse httpResponse) {
@@ -113,6 +120,12 @@ public class ServiceResponseDecoder<T> implements HttpResponseDecoder<ServiceRes
                     if (byte[].class.isAssignableFrom(javaType.getRawClass())) {
                         return new ServiceResponse<T>((T) IOUtils.toByteArray(httpResponse.getEntity().getContent()), headers);
                     }
+
+                    // Use a custom decoder if it's available and is able to decode the response
+                    if (customDecoder != null && customDecoder.shouldDecode(httpResponse)) {
+                        return new ServiceResponse<T>((T) customDecoder.decode(httpResponse, javaType), headers);
+                    }
+
                     return new ServiceResponse<T>(objectMapper.<T>readValue(httpResponse.getEntity().getContent(), javaType), headers);
                 } catch (JsonMappingException e) {
                     if (e.getMessage().contains("No content to map due to end-of-input")) {

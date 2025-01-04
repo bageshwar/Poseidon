@@ -18,6 +18,7 @@ package com.flipkart.poseidon.serviceclients.generator;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.poseidon.handlers.http.HttpResponseCustomDecoder;
 import com.flipkart.poseidon.handlers.http.multipart.FileFormField;
 import com.flipkart.poseidon.model.annotations.Description;
 import com.flipkart.poseidon.model.annotations.Name;
@@ -60,6 +61,7 @@ public class ServiceGenerator {
     private static final String REQUEST_OBJECT_LOOP_VAR_NAME = "requestObject1";
     private static final String META_INFO_PARAMETER_NAME = "_metaInfo";
     private static final String META_INFO_COMMAND_NAME_VAR_NAME = "_metaInfoCommandName";
+    private static final String CUSTOM_DECODER_VAR_NAME = "customDecoder";
 
     private ServiceGenerator() {}
 
@@ -251,6 +253,11 @@ public class ServiceGenerator {
             if (endPoint.getResponseObject() != null && !endPoint.getResponseObject().isEmpty()) {
                 JCommentPart returnComment = methodComment.addReturn();
                 returnComment.append(methodFullReturnType);
+            }
+
+            if (endPoint.isCustomServiceResponseDecoder()) {
+                method.param(getJType(jCodeModel, HttpResponseCustomDecoder.class.getName()), CUSTOM_DECODER_VAR_NAME);
+                methodComment.addParam(CUSTOM_DECODER_VAR_NAME);
             }
             method._throws(jCodeModel.directClass("Exception"));
             if (isImpl) {
@@ -513,6 +520,11 @@ public class ServiceGenerator {
 
             if(formFields.size() > 0) {
                 builderInvocation = builderInvocation.invoke("setFormFields").arg(JExpr.ref("formFields"));
+            }
+
+            // if custom encoder is to be supplied by the client, add that to the ServiceExecuteProperties Builder
+            if (endPoint.isCustomServiceResponseDecoder()) {
+                builderInvocation = builderInvocation.invoke("setCustomDecoder").arg(JExpr.ref(CUSTOM_DECODER_VAR_NAME));
             }
 
             builderInvocation = builderInvocation.invoke("build");

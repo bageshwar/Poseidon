@@ -39,6 +39,7 @@ public class EndPoint {
     private String responseMergerClass;
     private String errorResponseObject;
     private String[] description;
+    private boolean customServiceResponseDecoder;
 
     public String getHttpMethod() {
         return httpMethod;
@@ -156,6 +157,14 @@ public class EndPoint {
         this.metaInfo = metaInfo;
     }
 
+    public boolean isCustomServiceResponseDecoder() {
+        return customServiceResponseDecoder;
+    }
+
+    public void setCustomServiceResponseDecoder(boolean customServiceResponseDecoder) {
+        this.customServiceResponseDecoder = customServiceResponseDecoder;
+    }
+
     @Override
     public boolean equals(Object object) {
         if (object == null || !(object instanceof EndPoint)) {
@@ -194,6 +203,9 @@ public class EndPoint {
             return false;
         }
         if (!Arrays.equals(description, endPoint.getDescription())) {
+            return false;
+        }
+        if (!Objects.equals(customServiceResponseDecoder, endPoint.isCustomServiceResponseDecoder())) {
             return false;
         }
         return true;

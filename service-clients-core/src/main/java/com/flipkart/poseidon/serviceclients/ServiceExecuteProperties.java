@@ -17,6 +17,7 @@
 package com.flipkart.poseidon.serviceclients;
 
 import com.fasterxml.jackson.databind.JavaType;
+import com.flipkart.poseidon.handlers.http.HttpResponseCustomDecoder;
 import com.flipkart.poseidon.handlers.http.multipart.FormField;
 
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ public class ServiceExecuteProperties {
     private boolean requestCachingEnabled;
     private Map<String, ServiceResponseInfo> serviceResponseInfoMap = new HashMap<>();
     private List<FormField> formFields = new ArrayList<>();
+    private HttpResponseCustomDecoder customDecoder;
 
     public JavaType getJavaType() {
         return javaType;
@@ -119,4 +121,11 @@ public class ServiceExecuteProperties {
         this.formFields = formFields;
     }
 
+    public HttpResponseCustomDecoder getCustomDecoder() {
+        return customDecoder;
+    }
+
+    public void setCustomDecoder(HttpResponseCustomDecoder customDecoder) {
+        this.customDecoder = customDecoder;
+    }
 }

@@ -147,7 +147,7 @@ public abstract class AbstractServiceClient implements ServiceClient {
         ServiceResponseDecoder<T> serviceResponseDecoder =
                 new ServiceResponseDecoder<>(
                         getObjectMapper(), logger,
-                        serviceResponseInfoMap, ServiceContext.getCollectedHeaders());
+                        serviceResponseInfoMap, ServiceContext.getCollectedHeaders(), properties.getCustomDecoder());
         Future<TaskResult> future = taskContext.executeAsyncCommand(commandName, payload,
                 params, serviceResponseDecoder);
 

@@ -1,3 +1,6 @@
+## 5.15.0 (Jan 3, 2025)
+- Support for Http Response Custom Decoder
+
 ## 5.14.1 (Apr 12, 2022)
 - Adding jackson-datatype-jsr310
 - Adding jackson-datatype-jdk8

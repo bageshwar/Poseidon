@@ -17,6 +17,7 @@
 package com.flipkart.poseidon.serviceclients;
 
 import com.fasterxml.jackson.databind.JavaType;
+import com.flipkart.poseidon.handlers.http.HttpResponseCustomDecoder;
 import com.flipkart.poseidon.handlers.http.multipart.FormField;
 
 import java.util.List;
@@ -88,6 +89,11 @@ public class ServiceExecutePropertiesBuilder {
         if (formFields != null) {
             instance.setFormFields(formFields);
         }
+        return this;
+    }
+
+    public ServiceExecutePropertiesBuilder setCustomDecoder(HttpResponseCustomDecoder customDecoder) {
+        instance.setCustomDecoder(customDecoder);
         return this;
     }
 
